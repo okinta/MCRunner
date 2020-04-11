@@ -6,7 +6,16 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
@@ -15,6 +24,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MCRunner\MCRunner.csproj" />
+    <Reference Include="PLTypes">
+      <HintPath>C:\Program Files\TS Support\MultiCharts .NET64\PLTypes.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
