@@ -1,0 +1,3 @@
+[submodule "PLStudiesProxy"]
+	path = PLStudiesProxy
+	url = git@github.com:okinta/PLStudiesProxy.git

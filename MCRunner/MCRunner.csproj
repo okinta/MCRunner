@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PLStudiesProxy\PLStudiesProxy\PLStudiesProxy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="ATCenterProxy.interop">
       <HintPath>C:\Program Files\TS Support\MultiCharts .NET64\ATCenterProxy.interop.dll</HintPath>
     </Reference>
