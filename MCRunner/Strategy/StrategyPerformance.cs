@@ -28,12 +28,18 @@ namespace MCRunner.Strategy
         /// <summary>
         /// Read-only property. Returns current Market Position for strategy on the chart.
         /// </summary>
-        public int MarketPosition { get; set; } = 0;
+        public int MarketPosition { get; set; }
 
         /// <summary>
         /// Read-only property. Returns Market Position requested from the broker.
         /// </summary>
-        public int MarketPositionAtBroker => throw new NotImplementedException();
+        public int MarketPositionAtBroker
+        {
+            get
+            {
+                return (int)marketPositionAtBroker;
+            }
+        }
 
         /// <summary>
         /// Read-only property. Returns Market Position requested from the broker for the
@@ -57,6 +63,17 @@ namespace MCRunner.Strategy
         /// Read-only property. Returns signals consisting strategy.
         /// </summary>
         public IStrategy[] Signals => throw new NotImplementedException();
+
+        private double marketPositionAtBroker = 0;
+
+        /// <summary>
+        /// Call to update the market position at broker.
+        /// </summary>
+        /// <param name="positionChange">The change in position.</param>
+        public void UpdateMarketPositionAtBroker(double positionChange)
+        {
+            marketPositionAtBroker += positionChange;
+        }
 
         /// <summary>
         /// Converts amount of money from one currency into another one according to

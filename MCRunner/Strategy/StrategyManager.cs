@@ -65,6 +65,15 @@ namespace MCRunner.Strategy
         }
 
         /// <summary>
+        /// Call to update the market position at broker.
+        /// </summary>
+        /// <param name="positionChange">The change in position.</param>
+        public void UpdateMarketPositionAtBroker(double positionChange)
+        {
+            strategyInfo.UpdateMarketPositionAtBroker(positionChange);
+        }
+
+        /// <summary>
         /// Triggers any orders in the queue. Any orders that were submitted previously
         /// but not re-submitted since the last call of this method will be canceled.
         /// </summary>

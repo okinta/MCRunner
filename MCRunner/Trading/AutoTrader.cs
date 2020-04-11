@@ -123,6 +123,15 @@ namespace MCRunner.Trading
         }
 
         /// <summary>
+        /// Call to update the market position at broker.
+        /// </summary>
+        /// <param name="positionChange">The change in position.</param>
+        public void UpdateMarketPositionAtBroker(double positionChange)
+        {
+            Manager.UpdateMarketPositionAtBroker(positionChange);
+        }
+
+        /// <summary>
         /// Called when a new Bar is added to the chart. Processes the latest Bar.
         /// </summary>
         private void OnBarsUpdated(Instruments.Bar bar)

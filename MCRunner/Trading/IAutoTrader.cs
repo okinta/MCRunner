@@ -46,5 +46,11 @@ namespace MCRunner.Trading
         /// Stops trading.
         /// </summary>
         public void Stop();
+
+        /// <summary>
+        /// Call to update the market position at broker.
+        /// </summary>
+        /// <param name="positionChange">The change in position.</param>
+        public void UpdateMarketPositionAtBroker(double positionChange);
     }
 }
