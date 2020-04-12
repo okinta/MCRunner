@@ -1,9 +1,10 @@
 ﻿using OrderCreator = MCRunner.Orders.OrderCreator;
 using PowerLanguage.Strategy;
 using PowerLanguage;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Reflection;
 using System;
-using System.Collections.Immutable;
 
 namespace MCRunner.Strategy
 {
@@ -31,7 +32,7 @@ namespace MCRunner.Strategy
         /// <param name="strategyInfo">Optional IStrategyPerformance instance to use. If
         /// not provided a new StrategyPerformance instance will be created.</param>
         public StrategyRunner(
-            ImmutableList<IInstrument> barsData = null,
+            IEnumerable<IInstrument> barsData = null,
             IOrderCreator orderCreator = null,
             IOutput output = null,
             IStrategyPerformance strategyInfo = null)
@@ -40,7 +41,11 @@ namespace MCRunner.Strategy
 
             if (barsData is null)
             {
-                barsData = ImmutableList<IInstrument>.Empty;
+                SetProtectedProperty("BarsData", new List<IInstrument>());
+            }
+            else
+            {
+                SetProtectedProperty("BarsData", new List<IInstrument>(barsData));
             }
 
             if (orderCreator is null)
@@ -58,7 +63,6 @@ namespace MCRunner.Strategy
                 strategyInfo = new StrategyPerformance();
             }
 
-            SetProtectedProperty("BarsData", barsData);
             SetProtectedProperty("OrderCreator", orderCreator);
             SetProtectedProperty("Output", output);
             SetProtectedProperty("StrategyInfo", strategyInfo);

@@ -1,7 +1,7 @@
 ﻿using MCRunner.Instruments;
 using MCRunner.Orders;
 using PowerLanguage;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System;
 
 namespace MCRunner.Trading
@@ -40,7 +40,7 @@ namespace MCRunner.Trading
         /// Subscribes to the given chart and starts trading.
         /// </summary>
         /// <param name="bars">The chart to subscribe to.</param>
-        public void Start(ImmutableList<IMonitoredInstrument> bars);
+        public void Start(IEnumerable<IMonitoredInstrument> bars);
 
         /// <summary>
         /// Stops trading.

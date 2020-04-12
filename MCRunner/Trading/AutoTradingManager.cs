@@ -85,7 +85,7 @@ namespace MCRunner.Trading
         /// </summary>
         /// <param name="symbol">The symbol the chart is for.</param>
         /// <param name="bars">The chart to subscribe to.</param>
-        public void Start(string symbol, ImmutableList<IMonitoredInstrument> bars)
+        public void Start(string symbol, IEnumerable<IMonitoredInstrument> bars)
         {
             var trader = AutoTraders[symbol];
             if (trader.State == AutoTraderState.Running)

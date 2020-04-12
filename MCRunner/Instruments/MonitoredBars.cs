@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System;
 
 namespace MCRunner.Instruments
 {
@@ -28,11 +28,11 @@ namespace MCRunner.Instruments
         /// Converts this instance into a datastream item that can be loaded into
         /// StrategyRunner.
         /// </summary>
-        /// <returns>A ImmutableList datastream with this Bars instance as its
-        /// single source of data.</returns>
-        public new ImmutableList<IMonitoredInstrument> ToSingleDataStream()
+        /// <returns>A datastream with this Bars instance as its single source of
+        /// data.</returns>
+        public new IEnumerable<IMonitoredInstrument> ToSingleDataStream()
         {
-            return ImmutableList<IMonitoredInstrument>.Empty.Add(this);
+            return new List<IMonitoredInstrument> { this };
         }
     }
 }

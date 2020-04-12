@@ -1,8 +1,8 @@
 ﻿using MCRunner.Orders;
 using PowerLanguage;
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System;
 
 namespace MCRunner.Positions
 {
@@ -22,7 +22,7 @@ namespace MCRunner.Positions
             }
         }
 
-        private readonly List<PositionInfo> positions = new List<PositionInfo>();
+        private ImmutableList<PositionInfo> positions = ImmutableList<PositionInfo>.Empty;
 
         /// <summary>
         /// Validates the given order. Raises InvalidOrderException if invalid.
@@ -81,7 +81,7 @@ namespace MCRunner.Positions
         /// <param name="order">Information about the order.</param>
         private void OpenPosition(OrderInfo order)
         {
-            positions.Add(new PositionInfo() { Size = order.Size });
+            positions = positions.Add(new PositionInfo() { Size = order.Size });
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace MCRunner.Positions
 
             if (order.OrderExit.ExitType == OrderExit.EExitType.All)
             {
-                positions.Clear();
+                positions = positions.Clear();
             }
             else
             {

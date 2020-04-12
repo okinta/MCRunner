@@ -17,7 +17,7 @@ namespace MCRunner.Instruments
         /// sequentially.</param>
         public PlayableBars(IEnumerable<Bar> barsToPlay)
         {
-            BarsToPlay = barsToPlay;
+            BarsToPlay = new List<Bar>(barsToPlay);
         }
 
         /// <summary>

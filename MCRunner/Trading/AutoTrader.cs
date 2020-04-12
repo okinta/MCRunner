@@ -4,8 +4,9 @@ using MCRunner.Strategy;
 using OrderCreator = MCRunner.Orders.OrderCreator;
 using PowerLanguage.Strategy;
 using PowerLanguage;
-using System.Collections.Immutable;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MCRunner.Trading
 {
@@ -46,7 +47,7 @@ namespace MCRunner.Trading
         /// </summary>
         public IStrategyPerformance StrategyInfo { get; private set; }
 
-        private ImmutableList<IMonitoredInstrument> Bars { get; set; }
+        private IEnumerable<IMonitoredInstrument> Bars { get; set; }
         private IOutput Output { get; }
         private OrderCreator OrderCreator { get; } = new OrderCreator();
         private readonly Type type = typeof(T);
@@ -57,7 +58,7 @@ namespace MCRunner.Trading
         {
             get
             {
-                return Bars[0];
+                return Bars.First();
             }
         }
 
@@ -84,7 +85,7 @@ namespace MCRunner.Trading
         /// Subscribes to the given chart and starts trading.
         /// </summary>
         /// <param name="bars">The chart to subscribe to.</param>
-        public void Start(ImmutableList<IMonitoredInstrument> bars)
+        public void Start(IEnumerable<IMonitoredInstrument> bars)
         {
             if (Runner is object)
             {
@@ -94,9 +95,8 @@ namespace MCRunner.Trading
             Manager.OrderValidated += OnOrderValidated;
             Manager.OrderCanceled += OnOrderCanceled;
 
-            Bars = bars;
-            Runner = new StrategyRunner<T>(
-                Bars.CastToBase(), OrderCreator, Output, StrategyInfo);
+            Bars = new List<IMonitoredInstrument>(bars);
+            Runner = new StrategyRunner<T>(Bars, OrderCreator, Output, StrategyInfo);
             Runner.Create();
             Runner.StartCalc();
 
@@ -119,6 +119,7 @@ namespace MCRunner.Trading
             Manager.OrderCanceled -= OnOrderCanceled;
 
             Bars.ForEach((bar) => bar.Updated -= OnBarsUpdated);
+            Bars = null;
             Runner = null;
         }
 

@@ -82,19 +82,5 @@ namespace MCRunner
                 action(element);
             }
         }
-
-        /// <summary>
-        /// Casts the list the ImmutableList<IMonitoredInstrument> to
-        /// ImmutableList<IInstrument>
-        /// </summary>
-        /// <param name="bars">The bars to cast.</param>
-        /// <returns>The casted bars.</returns>
-        public static ImmutableList<IInstrument> CastToBase(
-            this ImmutableList<IMonitoredInstrument> bars)
-        {
-            var charts = ImmutableList<IInstrument>.Empty;
-            bars.ForEach((chart) => charts = charts.Add(chart));
-            return charts;
-        }
     }
 }

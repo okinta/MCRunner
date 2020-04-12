@@ -1,6 +1,6 @@
 ﻿namespace MCRunner.Positions
 {
-    public struct PositionInfo
+    internal struct PositionInfo
     {
         public double Size;
     }
