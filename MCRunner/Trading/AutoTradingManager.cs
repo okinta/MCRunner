@@ -3,7 +3,7 @@ using MCRunner.Orders;
 using PowerLanguage.Strategy;
 using PowerLanguage;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System;
 
@@ -39,7 +39,8 @@ namespace MCRunner.Trading
         /// </summary>
         public event Action<IAutoTrader, OrderInfo> OrderCanceled;
 
-        private IReadOnlyDictionary<string, AutoTraderInfo> AutoTraders { get; }
+        private IReadOnlyDictionary<Type, IReadOnlyDictionary<string, AutoTraderInfo>>
+            AutoTraders { get; }
 
         /// <summary>
         /// Instantiates the instance.
@@ -52,6 +53,31 @@ namespace MCRunner.Trading
             IEnumerable<Type> strategies, IEnumerable<string> symbols,
             IOutput output = null)
         {
+            if (strategies is null)
+            {
+                throw new ArgumentNullException("Must not be null", "strategies");
+            }
+
+            if (symbols is null)
+            {
+                throw new ArgumentNullException("Must not be null", "symbols");
+            }
+
+            strategies = new HashSet<Type>(strategies);
+            symbols = new HashSet<string>(symbols);
+
+            if (strategies.Count() == 0)
+            {
+                throw new ArgumentException(
+                    "At least one strategy must be provided", "strategies");
+            }
+
+            if (symbols.Count() == 0)
+            {
+                throw new ArgumentException(
+                    "At least one symbol must be provided", "symbols");
+            }
+
             strategies.ForEach((strategy) => ValidateStrategy(strategy));
 
             if (output is null)
@@ -59,25 +85,32 @@ namespace MCRunner.Trading
                 output = new ConsoleOutput();
             }
 
-            var autoTraders = new Dictionary<string, AutoTraderInfo>();
+            var autoTraders = new Dictionary<
+                Type, IReadOnlyDictionary<string, AutoTraderInfo>>();
             foreach (var strategy in strategies)
             {
+                var symbolTraders = new Dictionary<string, AutoTraderInfo>();
+
                 foreach (var symbol in symbols)
                 {
-                    if (!AutoTraders.ContainsKey(symbol))
-                    {
-                        autoTraders[symbol] = CreateAutoTrader(strategy, symbol, output);
-                    }
+                    symbolTraders[symbol] = CreateAutoTrader(strategy, symbol, output);
                 }
+
+                autoTraders[strategy] = symbolTraders;
             }
 
             AutoTraders = autoTraders;
+        }
 
-            if (AutoTraders.Count == 0)
-            {
-                throw new ArgumentException(
-                    "There must be at least one symbol to trade", "symbols");
-            }
+        /// <summary>
+        /// Gets the strategy performance information for a running strategy.
+        /// </summary>
+        /// <param name="strategy">The strategy to retrieve the information for.</param>
+        /// <param name="symbol">The symbol to retrieve the information for.</param>
+        /// <returns>The strategy performance information.</returns>
+        public IStrategyPerformance GetStrategyInfo(Type strategy, string symbol)
+        {
+            return AutoTraders[strategy][symbol].AutoTrader.StrategyInfo;
         }
 
         /// <summary>
@@ -87,17 +120,20 @@ namespace MCRunner.Trading
         /// <param name="bars">The chart to subscribe to.</param>
         public void Start(string symbol, IEnumerable<IMonitoredInstrument> bars)
         {
-            var trader = AutoTraders[symbol];
-            if (trader.State == AutoTraderState.Running)
+            foreach (var strategy in AutoTraders.Keys)
             {
-                throw new InvalidOperationException(string.Format(
-                    "AutoTradingManager for {0} is already running", symbol));
-            }
+                var trader = AutoTraders[strategy][symbol];
+                if (trader.State == AutoTraderState.Running)
+                {
+                    throw new InvalidOperationException(string.Format(
+                        "AutoTradingManager for {0} is already running", symbol));
+                }
 
-            trader.AutoTrader.OrderTriggered += trader.OnOrderTriggered;
-            trader.AutoTrader.OrderCanceled += trader.OnOrderCanceled;
-            trader.AutoTrader.Start(bars);
-            trader.State = AutoTraderState.Running;
+                trader.AutoTrader.OrderTriggered += trader.OnOrderTriggered;
+                trader.AutoTrader.OrderCanceled += trader.OnOrderCanceled;
+                trader.AutoTrader.Start(bars);
+                trader.State = AutoTraderState.Running;
+            }
         }
 
         /// <summary>
@@ -106,17 +142,20 @@ namespace MCRunner.Trading
         /// <param name="symbol">The symbol to stop trading.</param>
         public void Stop(string symbol)
         {
-            var trader = AutoTraders[symbol];
-            if (trader.State == AutoTraderState.NotRunning)
+            foreach (var strategy in AutoTraders.Keys)
             {
-                throw new InvalidOperationException(string.Format(
-                    "AutoTradingManager for {0} isn't running", symbol));
-            }
+                var trader = AutoTraders[strategy][symbol];
+                if (trader.State == AutoTraderState.NotRunning)
+                {
+                    throw new InvalidOperationException(string.Format(
+                        "AutoTradingManager for {0} isn't running", symbol));
+                }
 
-            trader.AutoTrader.OrderTriggered -= trader.OnOrderTriggered;
-            trader.AutoTrader.OrderCanceled -= trader.OnOrderCanceled;
-            trader.AutoTrader.Stop();
-            trader.State = AutoTraderState.NotRunning;
+                trader.AutoTrader.OrderTriggered -= trader.OnOrderTriggered;
+                trader.AutoTrader.OrderCanceled -= trader.OnOrderCanceled;
+                trader.AutoTrader.Stop();
+                trader.State = AutoTraderState.NotRunning;
+            }
         }
 
         /// <summary>
@@ -124,7 +163,7 @@ namespace MCRunner.Trading
         /// </summary>
         public void StopAll()
         {
-            foreach (var symbol in AutoTraders.Keys)
+            foreach (var symbol in AutoTraders[AutoTraders.Keys.First()].Keys)
             {
                 Stop(symbol);
             }
