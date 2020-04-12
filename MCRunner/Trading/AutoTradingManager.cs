@@ -39,6 +39,16 @@ namespace MCRunner.Trading
         /// </summary>
         public event Action<IAutoTrader, OrderInfo> OrderCanceled;
 
+        /// <summary>
+        /// The strategies this AutoTradingManager trades.
+        /// </summary>
+        public IEnumerable<Type> Strategies { get; }
+
+        /// <summary>
+        /// The symbols this AutoTradingManager trades.
+        /// </summary>
+        public IEnumerable<string> Symbols { get; }
+
         private IReadOnlyDictionary<Type, IReadOnlyDictionary<string, AutoTraderInfo>>
             AutoTraders { get; }
 
@@ -100,6 +110,8 @@ namespace MCRunner.Trading
             }
 
             AutoTraders = autoTraders;
+            Strategies = strategies;
+            Symbols = symbols;
         }
 
         /// <summary>
@@ -120,7 +132,7 @@ namespace MCRunner.Trading
         /// <param name="bars">The chart to subscribe to.</param>
         public void Start(string symbol, IEnumerable<IMonitoredInstrument> bars)
         {
-            foreach (var strategy in AutoTraders.Keys)
+            foreach (var strategy in Strategies)
             {
                 var trader = AutoTraders[strategy][symbol];
                 if (trader.State == AutoTraderState.Running)
@@ -142,7 +154,7 @@ namespace MCRunner.Trading
         /// <param name="symbol">The symbol to stop trading.</param>
         public void Stop(string symbol)
         {
-            foreach (var strategy in AutoTraders.Keys)
+            foreach (var strategy in Strategies)
             {
                 var trader = AutoTraders[strategy][symbol];
                 if (trader.State == AutoTraderState.NotRunning)
@@ -163,7 +175,7 @@ namespace MCRunner.Trading
         /// </summary>
         public void StopAll()
         {
-            foreach (var symbol in AutoTraders[AutoTraders.Keys.First()].Keys)
+            foreach (var symbol in Symbols)
             {
                 Stop(symbol);
             }
