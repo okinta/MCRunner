@@ -9,11 +9,18 @@ using System;
 
 namespace MCRunner.Trading
 {
+    internal enum AutoTraderState
+    {
+        Running,
+        NotRunning
+    }
+
     internal struct AutoTraderInfo
     {
-        public IAutoTrader AutoTrader;
-        public Action<OrderInfo> OnOrderTriggered;
         public Action<OrderInfo> OnOrderCanceled;
+        public Action<OrderInfo> OnOrderTriggered;
+        public AutoTraderState State;
+        public IAutoTrader AutoTrader;
     }
 
     /// <summary>
@@ -32,8 +39,7 @@ namespace MCRunner.Trading
         /// </summary>
         public event Action<IAutoTrader, OrderInfo> OrderCanceled;
 
-        private bool isTrading = false;
-        private IReadOnlyList<AutoTraderInfo> AutoTraders { get; }
+        private IReadOnlyDictionary<string, AutoTraderInfo> AutoTraders { get; }
 
         /// <summary>
         /// Instantiates the instance.
@@ -53,58 +59,75 @@ namespace MCRunner.Trading
                 output = new ConsoleOutput();
             }
 
-            var autoTraders = new List<AutoTraderInfo>();
+            var autoTraders = new Dictionary<string, AutoTraderInfo>();
             foreach (var strategy in strategies)
             {
                 foreach (var symbol in symbols)
                 {
-                    autoTraders.Add(CreateAutoTrader(strategy, symbol, output));
+                    if (!AutoTraders.ContainsKey(symbol))
+                    {
+                        autoTraders[symbol] = CreateAutoTrader(strategy, symbol, output);
+                    }
                 }
             }
 
             AutoTraders = autoTraders;
+
+            if (AutoTraders.Count == 0)
+            {
+                throw new ArgumentException(
+                    "There must be at least one symbol to trade", "symbols");
+            }
         }
 
         /// <summary>
         /// Subscribes to the given chart and starts trading.
         /// </summary>
+        /// <param name="symbol">The symbol the chart is for.</param>
         /// <param name="bars">The chart to subscribe to.</param>
-        public void Start(ImmutableList<IMonitoredInstrument> bars)
+        public void Start(string symbol, ImmutableList<IMonitoredInstrument> bars)
         {
-            if (isTrading)
+            var trader = AutoTraders[symbol];
+            if (trader.State == AutoTraderState.Running)
             {
-                throw new InvalidOperationException(
-                    "AutoTradingManager is already running");
+                throw new InvalidOperationException(string.Format(
+                    "AutoTradingManager for {0} is already running", symbol));
             }
 
-            foreach (var trader in AutoTraders)
-            {
-                trader.AutoTrader.OrderTriggered += trader.OnOrderTriggered;
-                trader.AutoTrader.OrderCanceled += trader.OnOrderCanceled;
-                trader.AutoTrader.Start(bars);
-            }
-
-            isTrading = true;
+            trader.AutoTrader.OrderTriggered += trader.OnOrderTriggered;
+            trader.AutoTrader.OrderCanceled += trader.OnOrderCanceled;
+            trader.AutoTrader.Start(bars);
+            trader.State = AutoTraderState.Running;
         }
 
         /// <summary>
-        /// Stops trading.
+        /// Stops trading a symbol.
         /// </summary>
-        public void Stop()
+        /// <param name="symbol">The symbol to stop trading.</param>
+        public void Stop(string symbol)
         {
-            if (!isTrading)
+            var trader = AutoTraders[symbol];
+            if (trader.State == AutoTraderState.NotRunning)
             {
-                throw new InvalidOperationException("AutoTradingManager isn't running");
+                throw new InvalidOperationException(string.Format(
+                    "AutoTradingManager for {0} isn't running", symbol));
             }
 
-            foreach (var trader in AutoTraders)
-            {
-                trader.AutoTrader.OrderTriggered -= trader.OnOrderTriggered;
-                trader.AutoTrader.OrderCanceled -= trader.OnOrderCanceled;
-                trader.AutoTrader.Stop();
-            }
+            trader.AutoTrader.OrderTriggered -= trader.OnOrderTriggered;
+            trader.AutoTrader.OrderCanceled -= trader.OnOrderCanceled;
+            trader.AutoTrader.Stop();
+            trader.State = AutoTraderState.NotRunning;
+        }
 
-            isTrading = true;
+        /// <summary>
+        /// Stops trading all symbols.
+        /// </summary>
+        public void StopAll()
+        {
+            foreach (var symbol in AutoTraders.Keys)
+            {
+                Stop(symbol);
+            }
         }
 
         /// <summary>
@@ -145,8 +168,9 @@ namespace MCRunner.Trading
             return new AutoTraderInfo()
             {
                 AutoTrader = autoTrader,
+                OnOrderCanceled = (order) => OrderCanceled(autoTrader, order),
                 OnOrderTriggered = (order) => OrderTriggered(autoTrader, order),
-                OnOrderCanceled = (order) => OrderCanceled(autoTrader, order)
+                State = AutoTraderState.NotRunning
             };
         }
     }
