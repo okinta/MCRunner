@@ -15,12 +15,12 @@ namespace MCRunner.Trading
         NotRunning
     }
 
-    internal struct AutoTraderInfo
+    internal sealed class AutoTraderInfo
     {
         public Action<OrderInfo> OnOrderCanceled;
         public Action<OrderInfo> OnOrderTriggered;
-        public AutoTraderState State;
-        public IAutoTrader AutoTrader;
+        public AutoTraderState State { get; set; }
+        public IAutoTrader AutoTrader { get; set; }
     }
 
     /// <summary>
