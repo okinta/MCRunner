@@ -13,11 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="PLStudiesProxy" Version="1.0.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\PLStudiesProxy\PLStudiesProxy\PLStudiesProxy.csproj" />
   </ItemGroup>
 
   <ItemGroup>
